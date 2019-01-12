@@ -1,91 +1,290 @@
 # Wando Team 2oe Linux Checklist
 
+## Notes
+Assume root permissions are needed for most commands. You can use `sudo` or become root with `su`.
+
+This script heavily borrows from [Forty-Bot Linux Checklist](https://github.com/Forty-Bot/linux-checklist)
+
 ## Checklist
 1. Read the readme
 
       Take notes on neccessary services, users, and any other important information.
-      
+
 1. Do the Forensics Questions
 
-      Forensics questions can point you towards other vulnerabilities. Keep this in mind. (ex: find a media file, find a hidden message, find a backdoor, etc)
+      Forensics questions can point you towards other vulnerabilities. Keep this in mind. (ex: *a media file, find a hidden message, find a backdoor, etc)
       
 1. Account Configuration
       1. Lock the root account
       
-      `$ sudo passwd -l root`
+            `$ passwd -l root`
       1. Disable the guest account in `/etc/lightdm/lightdm.conf`
       
-      ```
-      allow-guest=false
-      greeter-hide-users=true
-      greeter-show-manual-login=true
-      autologin-user=none
-      ```
+            ```
+            allow-guest=false
+            greeter-hide-users=true
+            greeter-show-manual-login=true
+            autologin-user=none
+            ```
       1. Compare `/etc/passwd` and `/etc/group` to the readme
       
-      Look out for uid 0 and hidden users!
+            Look out for uid 0 and hidden users!
       1. Delete unauthorized users:
       
-      `$ sudo userdel -r $user`
-      
-      `$ sudo groupdel $user`
+            `$ userdel -r $user`
+
+            `$ groupdel $user`
       1. Add users:
       
-      `$ sudo useradd -G $group1,$group2 $user'
+            `$ useradd -G $group1,$group2 $user'
+
+            `$ passwd $user`
+      1. Remove unauthorized users from adm and groups:
       
-      `$ sudo passwd $user`
-      1. Remove unauthorized users from adm and sudo groups:
-      
-      `$ sudo gpasswd -d $user $group`
+            `$ gpasswd -d $user $group`
       1. Add authorized users to groups:
       
-      `$sudo gpasswd -a $user $group`
+            `$gpasswd -a $user $group`
       1. Check `/etc/sudoers` and `/etc/sudoers.d` for unauthorized users and groups.
             1. Remove any instances of `nopasswd`
             1. Any commands listed can be run without a password (ex: /bin/chmod)
             1. Group lines are preceded by `%`
 1. Password Policy
       1. Change password expiration requirements in `/etc/login.defs`:
-      
-      ```
-      PASS_MAX_DAYS 30
-      PASS_MIN_DAYS 7
-      PASS_WARN_AGE 12
-      ```
+
+            ```
+            PASS_MAX_DAYS 30
+            PASS_MIN_DAYS 7
+            PASS_WARN_AGE 12
+            ```
       1. Add password history, minimum password length, and password complexity requirements in `/etc/pam.d/common-password`
       
-      **INSTALL CRACKLIB PRIOR TO CHANGING COMMON-PASSWORD**
-      
-      `$ sudo apt-get install libpam-cracklib`
-      
-      ```
-      password  required  pam_unix.so  obscure sha512 remember=12 use_authtok
-      password  required  pam_cracklib.so  retry=3 minlen=13 difok=4 dcredit=-1 ucredit=-1 ocredit=-1 lcredit=-1 maxrepeat=3
-      ```
+            **INSTALL CRACKLIB PRIOR TO CHANGING COMMON-PASSWORD**
+
+            `$ apt-get install libpam-cracklib`
+
+            ```
+            password  required  pam_unix.so  obscure sha512 remember=12 use_authtok
+            password  required  pam_cracklib.so  retry=3 minlen=13 difok=4 dcredit=-1 ucredit=-1 ocredit=-1 lcredit=-1 maxrepeat=3
+            ```
       1. Enforce account lockout policy in `/etc/pam.d/common-auth`:
       
-      **MUST COME FIRST**
-      
-      `auth   required    pam_tally2.so deny=5 audit unlock_time=1800 onerr=fail even_deny_root`
+            **MUST COME FIRST**
+
+            `auth   required    pam_tally2.so deny=5 audit unlock_time=1800 onerr=fail even_deny_root`
       1. Change account expiry defaults in `/etc/default/useradd`:
       
-      ```
-      EXPIRE=30
-      INACTIVE=30
-      ```
+            ```
+            EXPIRE=30
+            INACTIVE=30
+            ```
       1. Check minimum and maximum password ages in `/etc/shadow`
-      
-      Use `chage` to change password expiration.
-      
-      `$ chage -m $MIN -M $MAX $user`
+
+            Use `chage` to change password expiration.
+
+            `$ chage -m $MIN -M $MAX $user`
       1. **CHANGE PASSWORDS---YOU WILL BE LOCKED OUT IF YOU DON'T!**
       
-      Be sure to record new user passwords!
+            Be sure to record new user passwords!
       
-      `passwd $user`
+            `$ passwd $user`
 1. Enable automatic updates
 
-Update Manager -> Settings - > Updates
-1. Find and delete media files
+      Update Manager -> Settings - > Updates
+1. Check for unauthorized media
+      1. Find media files
+      
+            `$ find / -iname "*.$extension"
+      1. Look through user home directories for any unauthorized media
+            
+            `$ ls -alR /home`
+            
+            **There also may be unauthorized network shares not under the /home directory**
+1. Network Security
+      1. Enable and configure UFW
+      
+            ```
+            $ ufw default deny incoming
+            $ ufw default allow outgoing
+            $ ufw allow $port/service
+            $ ufw delete $rule
+            $ ufw logging on
+            $ ufw logging high
+            $ ufw enable
+            ```
+      1. Enable syn cookie protection
+      
+            `$ sysctl -n net.ipv4.tcp_syncookies`
+      1. Disable IPv6
+      
+            `$ echo "net.ipv6.conf.all.disable_ipv6 = 1" >> /etc/sysctl.conf
+      1. Disable IPv4 Forwarding
+      
+            `$ echo 0 > proc/sys/net/ipv4/ip_forward`
+      1. Prevent IP Spoofing
+      
+            `$ echo "nospoof on" >> /etc/host.conf`
+      1. Enable source verification
+            
+            `$ echo 1 > /proc/sys/net/ipv4/conf/default/rp_filter`
+1. Package Management
+      1. Verify Repositories
+            1. Check apt repository policy:
+            
+            `$ apt-cache policy`
+            1. Check apt trusted keys:
+            
+            `$ apt-key list`
+            1. Clear out the local repository of package files:
+            `$ apt-get autoclean`
+      1. Updates
+            
+            ```
+            $ apt-get update
+            $ apt-get -y upgrade
+            $ apt-get -y dist-upgrade
+            ```
+            
+            **Look for points for packages mentioned in the README, along with bash (if vulnerable to Shellshock), the kernel, sudo, and sshd**
+      1. Remove unauthorized and unused packages
+            1. Use deborphan to detect unneccessary packages:
+                  1. Install deborphan:
+                        
+                        `$ apt-get install deborphan`
+                  1. Search for unneccessary packages:
+                        
+                        `$ deborphan --guess-all`
+                  1. Delete unneccessary data packages:
+                        
+                        `$ deborphan --guess-data | xargs sudo apt-get -y remove --purge`
+                  1. Delete unneccessary libraries:
+                        
+                        `$ deborphan | xargs sudo apt-get -y remove --purge`
+            1. Look for hacking tools, games, and other unwanted/unneccessary packages:
+                  
+                  ```
+                  $ apt-cache policy $package
+                  $ which $package
+                  $ dpkg-query -l | grep -E '^ii' | less
+                  ```
+                  
+                  BAD STUFF:
+                  
+                        john, nmap, vuze, frostwire, kismet, freeciv, medusa, hydra, truecrack, ophcrack, nikto, cryptcat, nc, netcat, tightvncserver, x11vnc, nfs, xinetd
+                        
+            1. Ensure all services are required:
+                  `service --status-all`
+                  
+                  POSSIBLY BAD STUFF:
+                
+                        samba, postgresql, sftpd, vsftpd, apache, apache2, ftp, mysql, php, snmp, pop3, icmp, sendmail, dovecot, bind9, nginx
+                  
+                  MEGA BAD STUFF:
+                      
+                        telnet, rlogind, rshd, rcmd, rexecd, rbootd, rquotad, rstatd, rusersd, rwalld, rexd, fingerd, tftpd, telnet, snmp, netcat, nc
 
-`$ sudo find / -iname "*.$extension"`
+1. Service Hardening
+      1. Configure OpenSSH Server in `/etc/ssh/sshd_config`
+      
+            ```
+            Protocol 2
+            LogLevel INFO
+            X11Forwarding no
+            MaxAuthTries 4
+            IgnoreRhosts yes
+            HostbasedAuthentication no
+            PermitRootLogin no
+            PermitEmptyPasswords no
+            ```
+      1. Configure apache2 in `/etc/apache2/apache2.conf`
+      
+            ```
+            ServerSignature Off
+            ServerTokens Prod
+            ```
+
+1. Backdoor Detection and Removal
+	1. `ss -ln`
+      
+	1. If a port has `127.0.0.1:$port` in its line, that means it's connected to loopback and isn't exposed. Otherwise, there should only be ports which are specified in the readme open (but there probably will be tons more).
+      
+	1. For each open port which should be closed:
+		1. Find the program using the port
+                  
+                  `lsof -i -n -P :$port`
+	      1. Locate where the program is running from:
+            
+		      `whereis $program`
+		1. Find what package owns the file:
+            
+		      `dpkg -S $location`
+		1. Remove the responsible package:
+            
+		      `apt-get purge $package`
+            1. If there is no package, delete the file and kill the processes:
+                  
+                  `rm $location; killall -9 $program`
+		1. Verify the port is closed:
+                  
+                  `ss -l`
+
+1. Cron
+      1. Check /etc/crontab -e
+      1. Check `/etc/cron.*/`, `/etc/crontab`, and `/var/spool/cron/crontabs/`
+      1. Check init files in `/etc/init/ and `/etc/init.d/`
+      1. Remove contents of `/etc/rc.local`
+            
+            `$ echo "exit 0" > /etc/rc.local`
+      1. Check user crontabs
+      
+            `$ crontab -u $user -l`
+      1. Deny users use of cron jobs
+      
+            `$ echo "ALL" >> /etc/cron.deny`
+            
+1. Kernel Hardening
+      1. Edit the `/etc/sysctl.conf` file:
+            
+            ```
+            net.ipv4.conf.all.accept_redirects = 0
+            net.ipv4.ip_forward = 0
+            net.ipv4.conf.all.send_redirects = 0
+            net.ipv4.conf.default.send_redirects = 0
+            net.ipv4.conf.all.accept_source_route = 0
+            net.ipv4.tcp_syncookies = 1
+            net.ipv4.tcp_max_syn_backlog = 2048
+            net.ipv4.tcp_synack_retries = 2
+            net.ipv4.tcp_syn_retries = 5
+            net.ipv4.icmp_echo_ignore_all = 1
+            net.ipv4.conf.all.rp_filter = 1
+            net.ipv4.conf.default.rp_filter = 1
+            net.ipv4.icmp_echo_ignore_broadcasts = 1
+            net.ipv4.conf.all.redirects = 0
+            net.ipv4.conf.default.accept_redirects = 0
+            net.ipv6.conf.all.disable_ipv6 = 1
+            net.ipv6.conf.default.disable_ipv6
+            net.ipv6.conf.lo.disable_ipv6
+            ```
+      1. Load new sysctl settings
+            
+            `$ sysctl -p`
+
+1. Antivirus
+      1. Install `clamav`, `chkrootkit`, and `rkhunter`
+            
+            `$ apt-get install almav chkrootkit rkhunter`
+      1. Run ClamAV
+      
+            `$ freshclam`
+            `$ freshclam --help`
+      1. Run chkrootkit
+      
+            `$ chkrootkit -l`
+      1. Run RKHunter
+            
+            ```
+            $ rkhunter --update
+            $ rkhunter --propupd
+            $ rkhunter -c --enable all --disable none
+      1. Look through `/var/log/rkhunter.log`
+      
