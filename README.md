@@ -287,4 +287,33 @@ This script heavily borrows from [Forty-Bot Linux Checklist](https://github.com/
             $ rkhunter --propupd
             $ rkhunter -c --enable all --disable none
       1. Look through `/var/log/rkhunter.log`
-      
+
+1. Install Bastille
+	1. Install:
+		
+		`$ apt-get install bastille`
+	1. Run bastille:
+	
+		**Bastille may change configuration you have already done!**
+		
+		`$ bastille -c`
+
+1. Audit the System with Lynis
+	1. Install:
+		
+		`$ apt-get install lynis`
+	1. Audit the system with Lynis:
+	
+		`$ lynis audit system`
+
+1. Configure Auditd
+	1. Install:
+	
+		`$ apt-get install auditd`
+	1. Enable:
+		
+		`$ auditctl -e 1`
+	1. Configure with `/etc/audit/auditd.conf`
+	
+## Other Checklists
+[SANS Hardening the Linux System](https://www.sans.org/media/score/checklists/LinuxCheatsheet_2.pdf)
