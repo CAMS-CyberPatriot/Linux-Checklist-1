@@ -19,7 +19,7 @@ This script heavily borrows from [Forty-Bot Linux Checklist](https://github.com/
 1. Account Configuration
       1. Lock the root account
 
-       `$ passwd -l root`
+        $ passwd -l root
       1. Disable the guest account in `/etc/lightdm/lightdm.conf`
 
             ```
@@ -48,9 +48,11 @@ This script heavily borrows from [Forty-Bot Linux Checklist](https://github.com/
 
             `$gpasswd -a $user $group`
       1. Check `/etc/sudoers` and `/etc/sudoers.d` for unauthorized users and groups.
-            1. Remove any instances of `nopasswd`
+            1. Remove any instances of `nopasswd` and `!authenticate`, these allow sudo use without authentication
             1. Any commands listed can be run without a password (ex: /bin/chmod)
             1. Group lines are preceded by `%`
+	    
+      1. Wait to change user passwords until after password policy!
 1. Password Policy
       1. Change password expiration requirements in `/etc/login.defs`
 
