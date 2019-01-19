@@ -14,12 +14,14 @@ This script heavily borrows from [Forty-Bot Linux Checklist](https://github.com/
 
 1. Do the Forensics Questions
 
-      Forensics questions can point you towards other vulnerabilities. Keep this in mind. (ex: *a media file, find a hidden message, find a backdoor, etc)
+      Forensics questions can point you towards other vulnerabilities. Keep this in mind. (ex: a media file, find a hidden message, find a backdoor, etc)
 
 1. Account Configuration
       1. Lock the root account
 
         $ passwd -l root
+      1. Make sure the `/etc/securetty` file is empty to prohibit root login
+      
       1. Disable the guest account in `/etc/lightdm/lightdm.conf`
 
             ```
@@ -116,6 +118,8 @@ This script heavily borrows from [Forty-Bot Linux Checklist](https://github.com/
             $ ufw logging high
             $ ufw enable
             ```
+      1. Check `/etc/hosts` file for suspicious entries
+      
       1. Enable syn cookie protection
 
             `$ sysctl -n net.ipv4.tcp_syncookies`
@@ -132,6 +136,8 @@ This script heavily borrows from [Forty-Bot Linux Checklist](https://github.com/
 
             `$ echo 1 > /proc/sys/net/ipv4/conf/default/rp_filter`
 1. Package Management
+      1. Verify the repositories listed in `/etc/apt/sources.list`
+      
       1. Verify Repositories
             1. Check apt repository policy
 
@@ -232,7 +238,9 @@ This script heavily borrows from [Forty-Bot Linux Checklist](https://github.com/
             `$ ss -l`
 
 1. Cron
-      1. Check /etc/crontab -e
+      1. Check your user's crontabs
+      	
+	`$ crontab -e`
       1. Check `/etc/cron.*/`, `/etc/crontab`, and `/var/spool/cron/crontabs/`
       1. Check init files in `/etc/init/ and `/etc/init.d/`
       1. Remove contents of `/etc/rc.local`
