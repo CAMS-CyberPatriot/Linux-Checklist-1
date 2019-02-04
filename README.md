@@ -48,7 +48,7 @@ This script heavily borrows from [Forty-Bot Linux Checklist](https://github.com/
             `$ gpasswd -d $user $group`
       1. Add authorized users to groups
 
-            `$gpasswd -a $user $group`
+            `$ gpasswd -a $user $group`
       1. Check `/etc/sudoers` and `/etc/sudoers.d` for unauthorized users and groups.
             1. Remove any instances of `nopasswd` and `!authenticate`, these allow sudo use without authentication
             1. Any commands listed can be run without a password (ex: /bin/chmod)
@@ -290,7 +290,7 @@ This script heavily borrows from [Forty-Bot Linux Checklist](https://github.com/
 1. Antivirus
       1. Install `clamav`, `chkrootkit`, and `rkhunter`
 
-            `$ apt-get install almav chkrootkit rkhunter`
+            `$ apt-get install clamav chkrootkit rkhunter`
       1. Run ClamAV
 
             `$ freshclam`
@@ -308,24 +308,25 @@ This script heavily borrows from [Forty-Bot Linux Checklist](https://github.com/
             ```
       1. Look through `/var/log/rkhunter.log`
 
-1. Install Bastille
-	1. Install
-
-          `$ apt-get install bastille`
-	1. Run bastille
-
-          **Bastille may change configuration you have already done!**
-
-          `$ bastille -c`
-
 1. Audit the System with Lynis
 	1. Install
 
-          `$ apt-get install lynis`
+            ```
+            $ cd /usr/local
+            $ git clone https://github.com/CISOfy/lynis
+            $ chown -R 0:0 /usr/local/lynis
+            ```
+	    
 	1. Audit the system with Lynis
 
-          `$ lynis audit system`
-
+	   ```
+	   $ cd /usr/local/lynis
+	   $ lynis audit system
+	   ```
+	1. Look through `/var/log/lynis-report.dat` for warnings and suggestions
+	
+	   `$ grep -E 'warning|suggestion' | sed -e 's/warning\[\]\=//g' | sed -e 's/suggestion\[\]\=//g'`
+	   
 1. Configure Auditd
 	1. Install
 
