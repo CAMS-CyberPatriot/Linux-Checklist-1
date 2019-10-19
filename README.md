@@ -24,8 +24,6 @@ This script heavily borrows from [Forty-Bot Linux Checklist](https://github.com/
 
 		`$ passwd -l root`
 
-	1. Make sure the `/etc/securetty` file is empty to prohibit root login
-
 	1. Disable the guest account in `/etc/lightdm/lightdm.conf`
 
 		```
@@ -49,7 +47,7 @@ This script heavily borrows from [Forty-Bot Linux Checklist](https://github.com/
 	1. Add users
 
 		```
-		$ useradd -G $group1,$group2 $user`
+		$ useradd -G $group1,$group2 $user
 		$ passwd $user
 		```
 
@@ -117,9 +115,6 @@ This script heavily borrows from [Forty-Bot Linux Checklist](https://github.com/
 
 		`$ passwd $user`
 
-1. Enable automatic updates
-
-	Update Manager -> Settings - > Updates
 
 1. Check for unauthorized media
 
@@ -149,25 +144,9 @@ This script heavily borrows from [Forty-Bot Linux Checklist](https://github.com/
 
 	1. Check `/etc/hosts` file for suspicious entries
 
-	1. Enable syn cookie protection
-
-		`$ sysctl -n net.ipv4.tcp_syncookies`
-
-	1. Disable IPv6
-
-		`$ echo "net.ipv6.conf.all.disable_ipv6 = 1" >> /etc/sysctl.conf`
-
-	1. Disable IPv4 Forwarding
-
-		`$ echo 0 > proc/sys/net/ipv4/ip_forward`
-
 	1. Prevent IP Spoofing
 
 		`$ echo "nospoof on" >> /etc/host.conf`
-
-	1. Enable source verification
-
-		`$ echo 1 > /proc/sys/net/ipv4/conf/default/rp_filter`
 
 1. Package Management
 
@@ -190,6 +169,39 @@ This script heavily borrows from [Forty-Bot Linux Checklist](https://github.com/
 		$ apt-get -y upgrade
 		$ apt-get -y dist-upgrade
 		```
+
+	1. Enable automatic updates
+
+		1. Install `unattended-upgrades`
+
+			`$ apt-get install unattended-upgrades`
+
+		1. Reconfigure `unattended-upgrades`
+			
+			`$ dpkg-reconfigure unattended-upgrades`
+
+		1. Edit `/etc/apt/apt.conf.d/20auto-upgrades`
+
+			```
+			APT::Periodic::Update-Package-Lists "1";
+			APT::Periodic::Download-Upgradeable-Packages "1";
+			APT::Periodic::AutocleanInterval "7";
+			APT::Periodic::Unattended-Upgrade "1";
+			```
+
+		1. Edit `/etc/apt/apt.conf.d/50auto-upgrades`
+
+			```
+			Unattended-Upgrade::Allowed-Origins {
+				"${distro_id} stable";
+				"${distro_id} ${distro_codename}-security";
+				"${distro_id} ${distro_codename}-updates";
+			};
+
+			Unattended-Upgrade::Package-Blacklist {
+				"libproxy1v5";		# since the school filter blocks the word proxy
+			};
+			```
 
 		**Look for points for packages mentioned in the README, along with bash (if vulnerable to Shellshock), the kernel, sudo, and sshd**
 
@@ -221,13 +233,13 @@ This script heavily borrows from [Forty-Bot Linux Checklist](https://github.com/
 			$ dpkg-query -l | grep -E '^ii' | less
 			```
 
-		BAD STUFF
-
-		`john, nmap, vuze, frostwire, kismet, freeciv, minetest, minetest-server, medusa, hydra, truecrack, ophcrack, nikto, cryptcat, nc, netcat, tightvncserver, x11vnc, nfs, xinetd`
-
 		1. Ensure all services are required
 
 			`service --status-all`
+
+		BAD STUFF
+
+		`john, nmap, vuze, frostwire, kismet, freeciv, minetest, minetest-server, medusa, hydra, truecrack, ophcrack, nikto, cryptcat, nc, netcat, tightvncserver, x11vnc, nfs, xinetd`
 
 		POSSIBLY BAD STUFF
 
@@ -237,7 +249,7 @@ This script heavily borrows from [Forty-Bot Linux Checklist](https://github.com/
 
 		`telnet, rlogind, rshd, rcmd, rexecd, rbootd, rquotad, rstatd, rusersd, rwalld, rexd, fingerd, tftpd, telnet, snmp, netcat, nc`
 
-1. Service Hardening
+1. Service & Application Hardening
 
 	1. Configure OpenSSH Server in `/etc/ssh/sshd_config`
 
@@ -251,6 +263,10 @@ This script heavily borrows from [Forty-Bot Linux Checklist](https://github.com/
 		PermitRootLogin no
 		PermitEmptyPasswords no
 		```
+
+	1. Harden Firefox
+	
+		1. Block Popups
 
 	1. Configure apache2 in `/etc/apache2/apache2.conf`
 
@@ -299,7 +315,7 @@ This script heavily borrows from [Forty-Bot Linux Checklist](https://github.com/
 
 	1. Check `/etc/cron.*/`, `/etc/crontab`, and `/var/spool/cron/crontabs/`
 
-	1. Check init files in `/etc/init/ and `/etc/init.d/`
+	1. Check init files in `/etc/init/` and `/etc/init.d/`
 
 	1. Remove contents of `/etc/rc.local`
 
@@ -318,30 +334,35 @@ This script heavily borrows from [Forty-Bot Linux Checklist](https://github.com/
 	1. Edit the `/etc/sysctl.conf` file
 
 		```
+    fs.protected_fifos = 2
+    fs.protected_regular = 2
+    fs.suid_dumpable = 0
+		kernel.core_uses_pid = 1
+    kernel.dmesg_restrict = 1
+		kernel.sysrq = 0
+    kernel.randomize_va_space = 2
 		net.ipv4.conf.all.accept_redirects = 0
-		net.ipv4.ip_forward = 0
-		net.ipv4.conf.all.send_redirects = 0
-		net.ipv4.conf.default.send_redirects = 0
+		net.ipv4.conf.all.accept_redirects = 0
 		net.ipv4.conf.all.accept_source_route = 0
-		net.ipv4.tcp_syncookies = 1
+		net.ipv4.conf.all.log_martians = 1
+		net.ipv4.conf.all.redirects = 0
+		net.ipv4.conf.all.rp_filter = 1
+		net.ipv4.conf.all.send_redirects = 0
+		net.ipv4.conf.default.accept_redirects = 0
+		net.ipv4.conf.default.log_martians = 1
+		net.ipv4.conf.default.rp_filter = 1
+		net.ipv4.conf.default.send_redirects = 0
+		net.ipv4.icmp_echo_ignore_all = 1
+		net.ipv4.icmp_echo_ignore_broadcasts = 1
+		net.ipv4.ip_forward = 0
 		net.ipv4.tcp_max_syn_backlog = 2048
 		net.ipv4.tcp_synack_retries = 2
+		net.ipv4.tcp_syncookies = 1
 		net.ipv4.tcp_syn_retries = 5
-		net.ipv4.icmp_echo_ignore_all = 1
-		net.ipv4.conf.all.rp_filter = 1
-		net.ipv4.conf.default.rp_filter = 1
-		net.ipv4.icmp_echo_ignore_broadcasts = 1
-		net.ipv4.conf.all.redirects = 0
-		net.ipv4.conf.default.accept_redirects = 0
+		net.ipv4.tcp_timestamps = 9
 		net.ipv6.conf.all.disable_ipv6 = 1
 		net.ipv6.conf.default.disable_ipv6 = 1
 		net.ipv6.conf.lo.disable_ipv6 = 1
-		kernel.core_uses_pid = 1
-		kernel.sysrq = 0
-		net.ipv4.conf.all.accept_redirects = 0
-		net.ipv4.conf.all.log_martians = 1
-		net.ipv4.conf.default.log_martians = 1
-		net.ipv4.tcp_timestamps = 9
 		```
 
 	1. Load new sysctl settings
