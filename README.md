@@ -204,6 +204,24 @@ This script heavily borrows from [Forty-Bot Linux Checklist](https://github.com/
 			```
 
 		**Look for points for packages mentioned in the README, along with bash (if vulnerable to Shellshock), the kernel, sudo, and sshd**
+	
+	1. Verify binaries match with `debsums`
+
+		1. Install `debsums`
+
+			`$ apt-get install debsums`
+
+		1. Generate checksums for packages that don't come with them
+
+			`$ debsums -g`
+		
+		1. Verify checksums for all binaries
+
+			`$ debsums -c`
+
+		1. Verify checksums for binaries and config files *(false positives for legitimate changes by us)*
+
+			`$ debsums -a`
 
 	1. Remove unauthorized and unused packages
 
@@ -456,3 +474,5 @@ This script heavily borrows from [Forty-Bot Linux Checklist](https://github.com/
 ## Other Checklists
 
 [SANS Hardening the Linux System](https://www.sans.org/media/score/checklists/LinuxCheatsheet_2.pdf)
+
+[Awesome Security Hardening](https://github.com/decalage2/awesome-security-hardening)
