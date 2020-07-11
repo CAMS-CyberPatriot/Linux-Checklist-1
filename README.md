@@ -177,7 +177,7 @@ This script heavily borrows from [Forty-Bot Linux Checklist](https://github.com/
 			`$ apt-get install unattended-upgrades`
 
 		1. Reconfigure `unattended-upgrades`
-			
+
 			`$ dpkg-reconfigure unattended-upgrades`
 
 		1. Edit `/etc/apt/apt.conf.d/20auto-upgrades`
@@ -204,7 +204,7 @@ This script heavily borrows from [Forty-Bot Linux Checklist](https://github.com/
 			```
 
 		**Look for points for packages mentioned in the README, along with bash (if vulnerable to Shellshock), the kernel, sudo, and sshd**
-	
+
 	1. Verify binaries match with `debsums`
 
 		1. Install `debsums`
@@ -214,7 +214,7 @@ This script heavily borrows from [Forty-Bot Linux Checklist](https://github.com/
 		1. Generate checksums for packages that don't come with them
 
 			`$ debsums -g`
-		
+
 		1. Verify checksums for all binaries
 
 			`$ debsums -c`
@@ -283,7 +283,7 @@ This script heavily borrows from [Forty-Bot Linux Checklist](https://github.com/
 		```
 
 	1. Harden Firefox
-	
+
 		1. Block Popups
 
 	1. Configure apache2 in `/etc/apache2/apache2.conf`

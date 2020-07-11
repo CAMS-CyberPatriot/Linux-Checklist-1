@@ -10,7 +10,7 @@ Assume root permissions are needed for most commands. You can use `sudo` or beco
 
 Default root directory:
 
-  /var/www/html or /var/www
+	/var/www/html or /var/www
 
 Test config file syntax
 
@@ -18,7 +18,7 @@ Test config file syntax
 
 Access logs
 
-	/var/log/httpd/access_log and /var/log/httpd/ssl_access_log
+	/var/log/httpd/access_log` and `/var/log/httpd/ssl_access_log
 
 Error logs
 
